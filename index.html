@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f3ed">
+  <meta name="description" content="Choose your campus photography location for Perception Robotics, Lab 1 Question 6.">
+  <title>Campus Draw · Perception Robotics</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Campus Draw home"><span class="brand-mark" aria-hidden="true">pr<span>↗</span></span><span>PERCEPTION<br>ROBOTICS</span></a>
+    <div class="header-right"><span class="course-tag">LAB 01 <span>/</span> QUESTION 06</span><button id="language" class="language" type="button" aria-label="切换到中文">中文 <span aria-hidden="true">↗</span></button></div>
+  </header>
+
+  <main>
+    <div class="intro-label"><span class="small-dot"></span><span data-i18n="eyebrow">YOUR NEXT FIELD ASSIGNMENT</span></div>
+    <section class="draw-layout" aria-labelledby="page-title">
+      <div class="intro">
+        <h1 id="page-title"><span data-i18n="title1">A new view</span><br><span class="title-italic" data-i18n="title2">of campus.</span></h1>
+        <p class="lead" data-i18n="lead">One letter. A place to explore. A panorama to make.</p>
+        <p class="intro-copy" data-i18n="intro">Draw your location for the OpenCV stitching task. You get three draws in total. Choose carefully — your final letter is yours to keep.</p>
+
+        <form id="student-form" novalidate>
+          <label for="student-id" data-i18n="studentLabel">YOUR STUDENT ID</label>
+          <div class="input-wrap"><input id="student-id" name="studentId" inputmode="numeric" autocomplete="off" placeholder="e.g. 25023028" maxlength="8" pattern="[0-9]{8}" aria-describedby="input-hint" required><span class="input-icon" aria-hidden="true">↗</span></div>
+          <p id="input-hint" class="input-hint" data-i18n="inputHint">Enter your own 8-digit ID. Returning? Your saved draw will appear.</p>
+          <button id="submit" class="button button-dark" type="submit"><span data-i18n="submit">Get my assignment</span><span aria-hidden="true">↗</span></button>
+        </form>
+        <p id="notice" class="notice" role="status" aria-live="polite"></p>
+        <noscript>This page needs JavaScript to look up and save your assignment.</noscript>
+      </div>
+
+      <div class="ticket-area">
+        <div class="ticket" id="ticket">
+          <div class="ticket-header"><span data-i18n="ticketLabel">CAMPUS FIELDWORK PASS</span><span class="ticket-code">PR / 01—06</span></div>
+          <div class="ticket-body">
+            <div class="status-line"><span class="status-dot"></span><span id="status-label" data-i18n="ready">READY WHEN YOU ARE</span></div>
+            <div class="letter-stage" aria-hidden="true"><span class="corner top-left"></span><span class="corner top-right"></span><span class="corner bottom-left"></span><span class="corner bottom-right"></span><span id="letter" class="letter is-empty">?</span><span class="stage-coordinate">A LETTER. A NEW VIEW.</span></div>
+            <p id="assignment-title" class="assignment-title" aria-live="polite" data-i18n="emptyTitle">Your location awaits</p>
+            <p id="assignment-copy" class="assignment-copy" data-i18n="emptyCopy">Enter your student ID to reveal your first letter.</p>
+            <div class="draw-history" aria-label="Draw history"><div class="draw-slot" id="slot-1"><span class="slot-number">01</span><span class="slot-letter">—</span></div><div class="draw-slot" id="slot-2"><span class="slot-number">02</span><span class="slot-letter">—</span></div><div class="draw-slot" id="slot-3"><span class="slot-number">03</span><span class="slot-letter">—</span></div></div>
+            <div id="draw-actions" class="draw-actions" hidden>
+              <button type="button" id="redraw" class="button button-light"><span id="redraw-text">Draw another</span><span aria-hidden="true">↻</span></button>
+              <button type="button" id="confirm" class="button button-green"><span data-i18n="confirm">Confirm & lock</span><span aria-hidden="true">✓</span></button>
+              <p class="decision-note" data-i18n="decisionNote">A redraw replaces your current letter. You cannot go back.</p>
+            </div>
+            <div id="locked-actions" hidden><div class="locked-note"><span aria-hidden="true">✓</span><span data-i18n="lockedNote">Saved. Your assignment is final.</span></div><button type="button" id="receipt" class="receipt-button" data-i18n="receipt">Download assignment receipt ↓</button></div>
+          </div>
+          <div class="ticket-footer"><span id="ticket-student">STUDENT —</span><span id="ticket-counter">0 / 3 DRAWS</span></div>
+        </div>
+        <div class="ticket-caption"><span aria-hidden="true">↳</span><span data-i18n="caption">A small draw. A different perspective.</span></div>
+      </div>
+    </section>
+
+    <section class="rules" aria-labelledby="rules-heading">
+      <h2 id="rules-heading" data-i18n="rulesTitle">BEFORE YOU HEAD OUT</h2>
+      <div class="rule-grid">
+        <article><span class="rule-number">01 /</span><h3 data-i18n="rule1Title">Three draws, total.</h3><p data-i18n="rule1Copy">Your first draw plus two optional redraws. Each redraw gives you a different letter.</p></article>
+        <article><span class="rule-number">02 /</span><h3 data-i18n="rule2Title">Keep it? Lock it.</h3><p data-i18n="rule2Copy">Confirm any draw to make it final. Your third draw locks automatically. Refreshing never resets your chances.</p></article>
+        <article><span class="rule-number">03 /</span><h3 data-i18n="rule3Title">Go. Capture. Stitch.</h3><p data-i18n="rule3Copy">Use the course location list to find your letter. Take three overlapping photos and one location evidence photo for Q6.</p></article>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>PERCEPTION ROBOTICS <span class="footer-slash">/</span> OPENCV LAB</span><span data-i18n="footer">Made for looking a little closer.</span></footer>
+</body>
+</html>
