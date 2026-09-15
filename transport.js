@@ -8,7 +8,7 @@ export async function requestAssignment(action, studentId, expectedRevision) {
     error.code = 'NOT_CONFIGURED';
     throw error;
   }
-  return fetch(`${url}/rest/v1/rpc/lab1_campus_draw`, {
+  return fetch(`${url}/rest/v1/rpc/lab1_location_draw_v2`, {
     method: 'POST',
     // Publishable keys go in apikey, not Authorization: Bearer (they are not JWTs).
     headers: { 'Content-Type': 'application/json', apikey: key },
