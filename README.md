@@ -1,19 +1,39 @@
-# 把 Q6 抽签网站发布到 GitHub Pages
+# Campus Draw v2 — GitHub Pages 更新
 
-采用 **GitHub Pages 网页 + Supabase 数据库**。学生打开一个链接即可抽签，TA 电脑可以关机。3 次机会、提前确认、第三次自动锁定以及刷新恢复的规则不变。
+**站点：** https://kanzez.github.io/campus-draw/  
+**规则：** 新一轮 01–45 地点；每学号一次，随机且全班不重复；旧字母结果保留归档。
 
-GitHub Pages 只能发布静态网页，不能运行原来的 Node.js + SQLite 服务，因此这里把抽签规则和记录搬到 Supabase。记录保存在云端，不存进 GitHub 仓库，也不依赖学生的浏览器缓存。[GitHub Pages 官方说明](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+## 1. 更新现有 Supabase 项目
 
-## 1. 准备文件
+在项目的 **SQL Editor** 执行发布包中的完整 `supabase-setup.sql`（源码为 `supabase/setup.sql`）。需要项目管理权限，网页的 Publishable key 不能执行此操作。
 
-已生成 `github-pages/` 发布目录。可以直接使用本项目提供的 `campus-draw-github-pages.zip`，**先解压**再上传里面的文件。不要把 ZIP 文件本身上传为网页。
+脚本会：
 
-需要上传的文件：
+- 创建 `lab1_locations_v2` 和 `lab1_location_assignments_v2`。
+- 创建 `lab1_location_draw_v2`，提供按学号查询和一次分配。
+- 用共享事务锁和 `UNIQUE(location_id)` 防止并发分配重复地点。
+- 保留旧 `lab1_assignments` 表，撤销旧字母抽签函数的访客执行权限。
+- 保留已有新版记录；重复执行不会重置新版机会。
+
+可用**只读查询**确认接口已建立，不占用任何地点：
+
+```sql
+select public.lab1_location_draw_v2('lookup', '00000000', null);
+```
+
+返回应包含 `totalLocations: 45`。不要在正式数据库使用虚构学号测试 `draw`，每次成功抽取会占用一个地点。
+
+## 2. 发布网页
+
+发布目录包含以下文件；`index.html` 放在仓库根目录：
 
 ```text
 index.html
 style.css
 app.js
+map.js
+locations.js
+campus-map.svg
 transport.js
 config.js
 favicon.svg
@@ -22,111 +42,43 @@ supabase-setup.sql
 README.md
 ```
 
-`index.html` 最终应在 GitHub 仓库根目录，不能额外套一层 `github-pages/`。只上传上述发布文件；本地 `data/` 数据库和学生 CSV 不属于发布内容。
+现有 `config.js` 中的 Supabase Project URL 和 Publishable key 保持不变。只允许公开的 `sb_publishable_...` key，不能放数据库密码、Secret key 或 service_role key。
 
-## 2. 创建 Supabase 云端项目
+源码更新后运行 `npm run build:pages`，再将上述文件更新至 `KANZEZ/campus-draw` 的 `main` 分支。GitHub Pages 保持 `main`、`/(root)`。若使用 ZIP，先解压，上传其内部文件。**上传 SQL 文件不会自动执行 SQL。**
 
-1. 打开 [Supabase Dashboard](https://supabase.com/dashboard)，注册或登录 TA 自己的账号。
-2. 创建一个新的项目，例如 `pr-lab1-draw`。可以先选 Free 方案；数据库密码由你自己保管，网页不需要这个密码。
-3. 等项目就绪，打开 **SQL Editor → New query**。
-4. 打开发布文件中的 `supabase-setup.sql`，复制全部内容到编辑器，点击 **Run**。
-5. 运行成功后，**Table Editor** 中会出现 `lab1_assignments`。现在应该还没有学生记录。
+## 3. 上线检查
 
-脚本创建记录表和抽签函数；浏览器只能通过函数查询单个学号、抽取或确认，不能直接改表、删除记录或下载全班数据。重复执行这份脚本不会清空已有结果。[Supabase 数据库函数说明](https://supabase.com/docs/guides/database/functions)
+- 打开页面确认新版白色卡片、地图、蓝色按钮及中英文切换。
+- 用只读 `lookup` 确认 v2 云端函数可用。
+- 正式学生的首次提交应分配地点，重复提交或换浏览器应显示同一地点。
+- 地图标记编号须与结果卡、下载凭证一致。
+- 45 个地点分完后，新学号显示分配已满；已有学号仍能查看结果。
 
-## 3. 填写网页的两项公开配置
+本地 SQLite 与云端 Supabase 是两套数据库。全班只使用一个正式站点及数据库。
 
-在 Supabase 项目中找到：
+## 查看及导出新版记录
 
-- **Project URL**：通常在项目 **Connect** 对话框或项目的 API 设置中，形如 `https://abcdefghijklmnopqrst.supabase.co`。
-- **Publishable key**：在 **Settings → API Keys**，以 `sb_publishable_` 开头。若还没有，可创建一个 Publishable key。
-
-用文本编辑器打开发布目录的 `config.js`，将两个空字符串替换成你项目的实际值，保留引号：
-
-```javascript
-export const SUPABASE_URL = 'https://你的项目ID.supabase.co';
-export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_你的公开key';
-```
-
-这些是给网页使用的公开值。**不要填数据库密码、`sb_secret_...` 或 `service_role` key**；当前代码只接受新的 Publishable key。[Supabase API keys 官方说明](https://supabase.com/docs/guides/getting-started/api-keys)
-
-## 4. 新建 GitHub 仓库并上传
-
-1. 登录 GitHub，点击 **New repository**。
-2. Repository name 填 `campus-draw`，选择 **Public**，可以勾选添加 README，然后创建。
-3. 在仓库点击 **Add file → Upload files**。
-4. 上传第 1 步列出的文件，包含已经填写的 `config.js`，然后 **Commit changes**。
-5. 确认仓库首页直接能看到 `index.html`，而不是只有一个 ZIP 或一个外层文件夹。
-
-如果文件管理器隐藏 `.nojekyll`，可以在 GitHub 用 **Add file → Create new file** 新建同名空文件。其余文件没有下划线开头的目录，普通 Jekyll 发布也能展示，但保留 `.nojekyll` 可以明确按静态文件发布。
-
-## 5. 打开 GitHub Pages
-
-在刚创建的仓库中进入：
-
-**Settings → Pages → Build and deployment**
-
-- Source：**Deploy from a branch**
-- Branch：**main**
-- Folder：**/(root)**
-- 点击 **Save**
-
-等 Pages 页面显示部署完成，然后使用它提供的地址。仓库名为 `campus-draw` 时，通常是：
-
-```text
-https://你的GitHub用户名.github.io/campus-draw/
-```
-
-这是学生使用的链接，学生不需要注册 GitHub 或 Supabase。可以将该地址放到 Blackboard。GitHub 提供 `github.io` 域名，无需另购域名。[GitHub 发布设置说明](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
-
-## 6. 上线后检查一次
-
-先使用测试学号，例如 `25029991`，不要拿真实学生学号做测试：
-
-1. 输入测试学号，首次显示 `1 / 3`。
-2. 刷新或换浏览器，再输入同一个学号，仍为 `1 / 3`。
-3. 更换两次，第三次后显示已锁定。
-4. 换另一个测试学号，在第一次点击确定，确认不能再更换。
-5. 在 Supabase **Table Editor → lab1_assignments** 检查保存结果。
-
-本地版 SQLite 和云端版 Supabase 是两套独立数据库，不会自动同步或迁移。本次发布包不包含任何本地学生记录。若本地版已经用于正式分配，应先迁移这些记录再切换全班地址，避免同一学号在两个数据库各有一套机会。
-
-## TA 平时需要做什么
-
-- 学生只使用一个正式网址。TA 不需要运行电脑上的 `npm start`。
-- 在 Supabase **Table Editor → lab1_assignments** 查看全班记录，`locked = true` 为最终结果。也可以在 SQL Editor 执行以下查询并下载 CSV 结果：
+在 Supabase Table Editor 打开 `lab1_location_assignments_v2`，或在 SQL Editor 查询并导出：
 
 ```sql
-select student_id, letter, draws_used, locked, lock_reason, locked_at, history
-from public.lab1_assignments
+select student_id, location_id, assigned_at
+from public.lab1_location_assignments_v2
 order by student_id;
 ```
 
-- 更新页面文字后重新上传网页文件，不会重置抽签记录。
-- 免费项目在 **1 周不活跃后会暂停**。课程使用前登录 Supabase 确认项目处于运行状态，必要时恢复；Free 不保证长期无人使用也持续运行。[Supabase 当前套餐说明](https://supabase.com/pricing)
-
-## 当前身份识别方式
-
-学生按学号使用网站，**没有学校账号登录验证**。知道他人学号的人仍能查询或消耗其机会；后台规则能防止同一学号超次数，但不能证明输入者就是本人。这与本地版一致。公开链接也没有增加验证码或限流服务；若需要防止冒用或公开流量滥用，应另接课程认证及请求限制。
-
-字母为 A–Z 分配代码，实际拍摄地点仍以课程在 Blackboard 提供的地点表为准。
+旧字母记录仍在 `lab1_assignments`，不属于本轮 45 地点分配。网站没有删除或重新分配按钮。
 
 ## 常见问题
 
-| 现象 | 检查 |
-|---|---|
-| 页面 404 | 仓库已开启 Pages；`index.html` 在所选发布目录根部；部署已完成 |
-| 页面能开，但提示尚未配置 | 已填写并上传 `config.js` 中的两个实际值 |
-| 无法连接或抽签失败 | Supabase 项目未暂停、配置属于同一项目、已完整运行 SQL 脚本 |
-| 修改代码后暂未更新 | 等 GitHub Pages 本次部署完成，然后强制刷新 |
-| 跨浏览器次数不一致 | 是否访问同一个网站、同一个 Supabase 项目、输入同一个学号 |
+| 提示或现象 | 处理 |
+| --- | --- |
+| 新一轮抽签尚未开放 | 在配置所指向的 Supabase 项目执行完整 SQL 脚本 |
+| 无法连接服务 | 检查项目是否运行、网络及公开配置 |
+| 页面仍显示旧三次规则 | 确认 Pages 最新部署已完成并刷新页面 |
+| 所有地点已分配 | 本轮容量为 45 人；联系教师，不自动复用地点 |
 
-## 源码维护者重新生成发布目录
+身份仍通过输入学号识别，未接入学校登录；无法验证输入者就是该学号本人。
 
-在原项目目录运行：
+## 技术资料
 
-```bash
-npm run build:pages
-```
-
-会更新 `github-pages/` 的网页和 SQL 文件，保留已经存在的 `config.js`。运行站点不需要 Node.js；此命令只用于 TA 在修改源码后重新整理发布文件。
+[Supabase 数据库函数](https://supabase.com/docs/guides/database/functions) · [PostgreSQL 事务锁](https://www.postgresql.org/docs/current/explicit-locking.html) · [PolyU 官方地图](https://www.polyu.edu.hk/campus-map/)
