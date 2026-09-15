@@ -3,68 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f9fc">
-  <meta name="description" content="Draw your unique PolyU campus location for the Lab 1 360-degree panorama assignment.">
-  <title>Campus Draw · Perception Robotics</title>
+  <title>Campus Draw</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="./"><img src="./favicon.svg" width="32" height="32" alt=""><span>Campus Draw</span></a>
-    <nav aria-label="Main navigation"><a class="nav-active" href="#assignment" data-i18n="navAssignment">Assignment</a><a href="#campus-map" data-i18n="navMap">Campus map</a><button id="language" type="button" aria-label="切换到中文">中文</button></nav>
-  </header>
-  <main class="main-card" id="assignment">
-    <div class="card-heading">
-      <div><p class="eyebrow">PERCEPTION ROBOTICS · LAB 01 / Q5</p><h1 data-i18n="title">Your campus. A new perspective.</h1><p class="subtitle" data-i18n="subtitle">One draw. One unique location. A full 360° panorama.</p></div>
-      <span class="round-badge" data-i18n="round">45 locations</span>
+  <main>
+    <form id="student-form" novalidate>
+      <input id="student-id" name="studentId" aria-label="Student ID" aria-describedby="notice" inputmode="numeric" autocomplete="off" maxlength="8" pattern="[0-9]{8}" placeholder="Student ID" required>
+      <button id="submit" type="submit">Assign</button>
+    </form>
+    <div class="map">
+      <svg id="map-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1792" role="img" aria-labelledby="map-title map-description">
+        <title id="map-title">PolyU campus map</title>
+        <desc id="map-description">Assigned region</desc>
+        <image id="map-image" href="./campus-map.svg" width="2048" height="1792"/>
+        <g id="map-pin" visibility="hidden" aria-hidden="true">
+          <circle class="pin-halo" r="40"/>
+          <path class="pin-shape" d="M0,0 C-8,-14 -29,-35 -29,-53 A29,29 0 1,1 29,-53 C29,-35 8,-14 0,0Z"/>
+          <circle class="pin-centre" cx="0" cy="-53" r="10"/>
+        </g>
+      </svg>
     </div>
-    <section class="draw-section" aria-labelledby="student-label">
-      <form id="student-form" novalidate>
-        <label id="student-label" for="student-id" data-i18n="studentLabel">STUDENT ID</label>
-        <div class="form-row"><input id="student-id" name="studentId" inputmode="numeric" autocomplete="off" maxlength="8" pattern="[0-9]{8}" placeholder="Enter your 8-digit student ID" aria-describedby="input-hint notice" required><button class="primary-button" id="submit" type="submit"><span class="button-label" data-i18n="draw">Draw my location</span><span class="button-arrow" aria-hidden="true">↗</span></button></div>
-        <p id="input-hint" class="hint" data-i18n="inputHint">Use your own student ID. Already drawn? Enter it again to view your saved location.</p>
-      </form>
-      <p id="notice" class="notice" role="status" aria-live="polite"></p>
-      <noscript>Enable JavaScript to draw and view your location.</noscript>
-    </section>
-    <section class="workspace" aria-label="Campus map and assignment">
-      <div class="map-panel" id="campus-map">
-        <div class="section-heading"><div><h2 data-i18n="mapTitle">PolyU campus map</h2><p data-i18n="mapSubtitle">Hung Hom campus</p></div><span class="map-legend"><i aria-hidden="true"></i><span data-i18n="mapLegend">Your location</span></span></div>
-        <div class="map-viewport">
-          <svg id="map-svg" xmlns="http://www.w3.org/2000/svg" viewBox="150 70 1620 1480" role="img" tabindex="0" aria-labelledby="map-title map-description">
-            <title id="map-title">PolyU Hung Hom campus</title><desc id="map-description">Draw a location to see it highlighted on the map. Use the zoom controls or drag to explore.</desc>
-            <image id="map-image" href="./campus-map.svg" x="0" y="0" width="2048" height="1792"/>
-            <g id="map-dots" aria-hidden="true"></g>
-            <g id="map-pin" visibility="hidden"><circle class="pin-halo" r="48"/><path class="pin-shape" d="M0,0 C-8,-14 -29,-35 -29,-53 A29,29 0 1,1 29,-53 C29,-35 8,-14 0,0Z"/><text id="map-pin-label" x="0" y="-44" text-anchor="middle">01</text></g>
-          </svg>
-          <div class="map-controls" aria-label="Map controls"><button type="button" id="zoom-in" aria-label="Zoom in">+</button><button type="button" id="zoom-out" aria-label="Zoom out">−</button><button type="button" id="map-fit" aria-label="Show campus">⌂</button><button type="button" id="map-locate" aria-label="Zoom to my location" disabled>⌖</button></div>
-          <span class="north" aria-hidden="true">↑<br>N</span>
-          <p class="map-credit">Map © <a href="https://www.polyu.edu.hk/campus-map/" target="_blank" rel="noopener noreferrer">The Hong Kong Polytechnic University</a></p>
-        </div>
-        <p class="map-caption" data-i18n="mapHint">Drag to move · + / − to zoom · The pin marks your assigned landmark.</p>
+    <section class="result" aria-labelledby="result-heading">
+      <div class="region">
+        <h1 id="result-heading">Assigned region</h1>
+        <p id="location-name" aria-live="polite">—</p>
+        <p id="notice" class="sr-only" role="status" aria-live="polite"></p>
       </div>
-      <aside class="result-panel" aria-labelledby="result-heading">
-        <h2 id="result-heading" class="eyebrow" data-i18n="resultLabel">YOUR ASSIGNMENT</h2>
-        <div id="empty-result" class="empty-result"><svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M24 43S8 28 8 18a16 16 0 1 1 32 0c0 10-16 25-16 25Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="18" r="5" fill="none" stroke="currentColor" stroke-width="2"/></svg><h3 data-i18n="emptyTitle">A place of your own.</h3><p data-i18n="emptyCopy">Your location will appear here and on the map.</p></div>
-        <div id="saved-result" hidden aria-live="polite">
-          <span class="saved-badge" data-i18n="saved">ASSIGNED · 1 / 1 DRAW</span>
-          <p class="location-number"><span aria-hidden="true">#</span><span id="location-number"></span></p>
-          <h3 id="location-name"></h3><p id="shooting-point" class="shooting-point"></p>
-          <a id="official-map" class="text-link" href="https://www.polyu.edu.hk/campus-map/" target="_blank" rel="noopener noreferrer"><span data-i18n="openMap">Open official map</span> ↗</a>
-          <div class="saved-meta"><span id="assigned-student"></span><span data-i18n="finalCopy">Saved permanently. No redraws.</span></div>
-          <button id="receipt" type="button" class="secondary-button" data-i18n="receipt">Download receipt ↓</button>
-        </div>
-        <div class="pool-status"><span data-i18n="poolLabel">LOCATIONS REMAINING</span><strong id="pool-count">— / 45</strong></div>
-      </aside>
-    </section>
-    <section class="field-notes" aria-label="Fieldwork requirements">
-      <div><span class="note-number">01</span><p><strong data-i18n="rule1Title">One student, one location.</strong><span data-i18n="rule1">Assigned randomly. No shared locations or redraws.</span></p></div>
-      <div><span class="note-number">02</span><p><strong data-i18n="rule2Title">Capture the full 360°.</strong><span data-i18n="rule2">Take at least 12 overlapping photos from one position.</span></p></div>
-      <div><span class="note-number">03</span><p><strong data-i18n="rule3Title">Include your student card.</strong><span data-i18n="rule3">Show your physical card in one original photo.</span></p></div>
+      <div class="actions">
+        <a id="official-map" href="https://www.polyu.edu.hk/campus-map/" target="_blank" rel="noopener noreferrer" title="Map © The Hong Kong Polytechnic University">Open official map</a>
+        <button id="receipt" type="button" disabled>Receipt</button>
+      </div>
     </section>
   </main>
-  <footer>Perception Robotics <span>·</span> Python &amp; OpenCV Lab</footer>
 </body>
 </html>
